@@ -38,6 +38,7 @@ export default class AuthContent extends React.Component {
     }
 
     edit = (user) => {
+     
         this.setState({
             currentUser: user,
             editedFirstName: user.firstName,
@@ -69,16 +70,23 @@ export default class AuthContent extends React.Component {
     };
 
     delete = (user) => {
-        this.setState({ currentUser: user, showDeleteModal: true });
+        console.log("Preparing to delete user:", user);
+        this.setState({ currentUser: user, showDeleteModal: true }, () => {
+            console.log("State after delete:", this.state);
+        });
     };
 
     confirmDelete = () => {
         const { currentUser } = this.state;
-        this.onDelete(currentUser.id);
-        this.setState({ showDeleteModal: false });
+        console.log("Confirming delete for user:", currentUser);
+        if (currentUser) {
+            this.onDelete(currentUser.id);
+            this.setState({ showDeleteModal: false });
+        }
     };
 
     onDelete = (id) => {
+        
         request("DELETE", `/users/${id}`, {}).then((response) => {
             this.fetchUsers();
         }).catch((error) => {
@@ -104,6 +112,7 @@ export default class AuthContent extends React.Component {
         const { data, usersPerPage } = this.state;
         return Math.ceil(data.length / usersPerPage);
     };
+    
     render() {
         const currentUsers = this.getCurrentUsers();
         const totalPages = this.getTotalPages();
@@ -180,7 +189,60 @@ export default class AuthContent extends React.Component {
                                         </li>
                                     </ul>
                                 </nav>
-    
+         {/* Edit Modal */}
+         <div className={`modal fade ${this.state.showEditModal ? 'show' : ''}`} style={{ display: this.state.showEditModal ? 'block' : 'none' }}>
+                                    <div className="modal-dialog">
+                                        <div className="modal-content">
+                                            <div className="modal-header">
+                                                <h5 className="modal-title">Edit User</h5>
+                                                <button type="button" className="close" onClick={() => this.setState({ showEditModal: false })}>
+                                                    <span>&times;</span>
+                                                </button>
+                                            </div>
+                                            <div className="modal-body">
+                                                <form>
+                                                    <div className="form-group">
+                                                        <label>First Name</label>
+                                                        <input type="text" className="form-control" name="editedFirstName" value={this.state.editedFirstName} onChange={this.handleInputChange} />
+                                                    </div>
+                                                    <div className="form-group">
+                                                        <label>Last Name</label>
+                                                        <input type="text" className="form-control" name="editedLastName" value={this.state.editedLastName} onChange={this.handleInputChange} />
+                                                    </div>
+                                                    <div className="form-group">
+                                                        <label>Username</label>
+                                                        <input type="text" className="form-control" name="editedLogin" value={this.state.editedLogin} onChange={this.handleInputChange} />
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            <div className="modal-footer">
+                                                <button type="button" className="btn btn-secondary" onClick={() => this.setState({ showEditModal: false })}>Close</button>
+                                                <button type="button" className="btn btn-primary" onClick={this.confirmEdit}>Save changes</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Delete Confirmation Modal */}
+                                <div className={`modal fade ${this.state.showDeleteModal ? 'show' : ''}`} style={{ display: this.state.showDeleteModal ? 'block' : 'none' }}>
+                                    <div className="modal-dialog">
+                                        <div className="modal-content">
+                                            <div className="modal-header">
+                                                <h5 className="modal-title">Delete User</h5>
+                                                <button type="button" className="close" onClick={() => this.setState({ showDeleteModal: false })}>
+                                                    <span>&times;</span>
+                                                </button>
+                                            </div>
+                                            <div className="modal-body">
+                                                <p>Are you sure you want to delete user {this.state.currentUser?.login}?</p>
+                                            </div>
+                                            <div className="modal-footer">
+                                                <button type="button" className="btn btn-secondary" onClick={() => this.setState({ showDeleteModal: false })}>Cancel</button>
+                                                <button type="button" className="btn btn-danger" onClick={this.confirmDelete}>Delete</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 {/* Edit and Delete Modals here */}
                             </div>
                         </div>
@@ -189,5 +251,6 @@ export default class AuthContent extends React.Component {
             </div>
         );
     }
-    
+
+
 }
